@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# GUI for logging into the University of Canterbury internet
+# Works like ienabler for the windows machines
+#
+# (c) John Stowers 2008
+
 import gtk
 import gobject
 import dbus, dbus.glib
@@ -16,6 +22,7 @@ NAME="IEnabler"
 ICON=gtk.STOCK_NETWORK
 USER="jrs89"
 PASSWORD="rice2498"
+DELAY_MS=500
 
 class IEnabler(object):
     def __init__(self,user,password):
@@ -144,7 +151,7 @@ class App:
         self.nm = NetworkListener()
         self.nm.connect("online", lambda x: self.authenticate("Enable"))
         if self.nm.online:
-            gobject.timeout_add(1000,self.authenticate,"Enable")
+            gobject.timeout_add(DELAY_MS,self.authenticate,"Enable")
 
     def _on_popup_menu(self, status, button, time):
         self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.tray)
