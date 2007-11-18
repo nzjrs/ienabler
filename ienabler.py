@@ -140,7 +140,7 @@ class NetworkListener(gobject.GObject):
         self.emit("offline")
 
 
-class App:
+class Gui(object):
     def __init__(self):
         pynotify.init(NAME)
         self.authenticator = None
@@ -208,7 +208,7 @@ class App:
 
 if __name__ == "__main__":
     gtk.gdk.threads_init()
-    app = App()
+    app = Gui()
     gtk.main()
 
 
