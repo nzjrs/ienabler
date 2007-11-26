@@ -147,9 +147,12 @@ class Gui(object):
             self.icon = gtk.gdk.pixbuf_new_from_file(icon)
         except gobject.GError:
             self.icon = None
-
         self.tray = self.create_tray_icon()
         self.menu = self.create_menu()
+        self.n = pynotify.Notification(NAME)
+        self.n.attach_to_status_icon(self.tray)
+        self.n.set_timeout(pynotify.EXPIRES_DEFAULT)
+
         self.nm = NetworkListener()
         self.nm.connect("online", lambda x: self.authenticate("Enable"))
         if self.nm.online:
@@ -179,9 +182,8 @@ class Gui(object):
         else:
             msg = "Could not %s Internet Access" % choice
             self.online = False
-        n = pynotify.Notification(NAME, msg, gtk.STOCK_NETWORK)
-        n.attach_to_status_icon(self.tray)
-        n.show()
+        self.n.update(NAME,msg,gtk.STOCK_NETWORK)
+        self.n.show()
                 
     def authenticate(self, choice):
         self.authenticator = Authenticator(choice)
