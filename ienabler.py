@@ -17,9 +17,9 @@ import telnetlib
 import sys
 import getopt
 import getpass
+import os.path
 
 NAME="IEnabler"
-ICON=gtk.STOCK_NETWORK
 USER="jrs89"
 PASSWORD="rice2498"
 DELAY_MS=500
@@ -89,11 +89,7 @@ class Authenticator(threading.Thread, gobject.GObject):
             ok = i.enable()
         else:
             ok = i.disable()
-        if ok:
-            msg = "%sd OK" % self.choice
-        else:
-            msg = "Could not %s" % self.choice
-        self.emit("completed", ok, msg)
+        self.emit("completed", ok, self.choice)
 
     def emit(self, *args):
         """
@@ -144,10 +140,16 @@ class Gui(object):
     def __init__(self):
         pynotify.init(NAME)
         self.authenticator = None
+        self.online = False
 
-        self.tray = self.create_icon()
+        try:
+            icon = os.path.join(os.path.dirname(__file__),'uclogo.svg')
+            self.icon = gtk.gdk.pixbuf_new_from_file(icon)
+        except gobject.GError:
+            self.icon = None
+
+        self.tray = self.create_tray_icon()
         self.menu = self.create_menu()
-
         self.nm = NetworkListener()
         self.nm.connect("online", lambda x: self.authenticate("Enable"))
         if self.nm.online:
@@ -165,10 +167,19 @@ class Gui(object):
         about.destroy()
 
     def _on_exit_clicked(self, widget):
+        if self.is_online():
+            self.authenticate("Disable")
+            self.authenticator.join()
         gtk.main_quit()
 
-    def _on_authenticated(self, authenticator, ok, msg):
-        n = pynotify.Notification(NAME, msg, ICON)
+    def _on_authenticated(self, authenticator, ok, choice):
+        if ok:
+            msg = "Internet Access %sd OK" % choice
+            self.online = choice == "Enable"
+        else:
+            msg = "Could not %s Internet Access" % choice
+            self.online = False
+        n = pynotify.Notification(NAME, msg, gtk.STOCK_NETWORK)
         n.attach_to_status_icon(self.tray)
         n.show()
                 
@@ -177,15 +188,17 @@ class Gui(object):
         self.authenticator.connect("completed", self._on_authenticated)
         self.authenticator.start()            
 
-    def create_icon(self):
+    def create_tray_icon(self):
         tray = gtk.StatusIcon()
-        tray.set_from_stock(ICON)
+        if self.icon:
+            tray.set_from_pixbuf(self.icon)
+        else:
+            tray.set_from_stock(gtk.STOCK_NETWORK)
         tray.set_tooltip('Ienabler')
         tray.connect('popup-menu', self._on_popup_menu)
         tray.set_visible(True)
         return tray
         
-    # Creates the Contextual Menu    
     def create_menu(self):
         menu = gtk.Menu()
         enable = gtk.ImageMenuItem(stock_id=gtk.STOCK_YES, accel_group=None)
@@ -205,6 +218,9 @@ class Gui(object):
              
         menu.show_all()
         return menu
+
+    def is_online(self):
+        return self.nm.online and self.online
 
 if __name__ == "__main__":
     gtk.gdk.threads_init()
