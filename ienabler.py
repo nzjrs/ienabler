@@ -139,70 +139,36 @@ class NetworkListener(gobject.GObject):
 class Gui(object):
     def __init__(self):
         pynotify.init(NAME)
-        self.authenticator = None
         self.online = False
 
-        try:
-            icon = os.path.join(os.path.dirname(__file__),'uclogo.svg')
-            self.icon = gtk.gdk.pixbuf_new_from_file(icon)
-        except gobject.GError:
-            self.icon = None
-        self.tray = self.create_tray_icon()
-        self.menu = self.create_menu()
-        self.n = pynotify.Notification(NAME)
-        self.n.attach_to_status_icon(self.tray)
-        self.n.set_timeout(pynotify.EXPIRES_DEFAULT)
-
+        self._create_gui()
         self.nm = NetworkListener()
         self.nm.connect("online", lambda x: self.authenticate("Enable"))
         if self.nm.online:
             gobject.timeout_add(DELAY_MS,self.authenticate,"Enable")
 
-    def _on_popup_menu(self, status, button, time):
-        self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.tray)
+    def _create_gui(self):
+        #load themed or fallback app icon
+        try:
+            icon = os.path.join(os.path.dirname(__file__),'uclogo.svg')
+            self.icon = gtk.gdk.pixbuf_new_from_file(icon)
+        except gobject.GError:
+            self.icon = gtk.icon_theme_get_default().load_icon(gtk.STOCK_NETWORK, 24, gtk.ICON_LOOKUP_FORCE_SVG)
 
-    def _on_about_clicked(self, widget):
-        about = gtk.AboutDialog()
-        about.set_name(NAME)
-        about.set_authors(("John Stowers",))
-        about.set_comments("Log to the University of Canterbury Internet")
-        about.run()
-        about.destroy()
+        #build tray icon
+        self.tray = gtk.StatusIcon()
+        self.tray.set_from_pixbuf(self.icon)
+        self.tray.set_tooltip('Ienabler')
+        self.tray.connect('popup-menu', self._on_popup_menu)
+        self.tray.set_visible(True)
 
-    def _on_exit_clicked(self, widget):
-        if self.is_online():
-            self.authenticate("Disable")
-            self.authenticator.join()
-        gtk.main_quit()
-
-    def _on_authenticated(self, authenticator, ok, choice):
-        if ok:
-            msg = "Internet Access %sd OK" % choice
-            self.online = choice == "Enable"
-        else:
-            msg = "Could not %s Internet Access" % choice
-            self.online = False
-        self.n.update(NAME,msg,gtk.STOCK_NETWORK)
-        self.n.show()
-                
-    def authenticate(self, choice):
-        self.authenticator = Authenticator(choice)
-        self.authenticator.connect("completed", self._on_authenticated)
-        self.authenticator.start()            
-
-    def create_tray_icon(self):
-        tray = gtk.StatusIcon()
-        if self.icon:
-            tray.set_from_pixbuf(self.icon)
-        else:
-            tray.set_from_stock(gtk.STOCK_NETWORK)
-        tray.set_tooltip('Ienabler')
-        tray.connect('popup-menu', self._on_popup_menu)
-        tray.set_visible(True)
-        return tray
+        #attach the libnotification bubble to the tray
+        self.notification = pynotify.Notification(NAME)
+        self.notification.attach_to_status_icon(self.tray)
+        self.notification.set_timeout(pynotify.EXPIRES_DEFAULT)
         
-    def create_menu(self):
-        menu = gtk.Menu()
+        #create popup menu
+        self.menu = gtk.Menu()
         enable = gtk.ImageMenuItem(stock_id=gtk.STOCK_YES, accel_group=None)
         enable.connect("activate", lambda x: self.authenticate("Enable"))
         disable = gtk.ImageMenuItem(stock_id=gtk.STOCK_NO, accel_group=None)
@@ -212,14 +178,46 @@ class Gui(object):
         quit = gtk.ImageMenuItem(stock_id=gtk.STOCK_QUIT, accel_group=None)
         quit.connect("activate", self._on_exit_clicked)
         
-        menu.add(enable)
-        menu.add(disable)
-        menu.add(gtk.SeparatorMenuItem())
-        menu.add(about)
-        menu.add(quit)
-             
-        menu.show_all()
-        return menu
+        self.menu.add(enable)
+        self.menu.add(disable)
+        self.menu.add(gtk.SeparatorMenuItem())
+        self.menu.add(about)
+        self.menu.add(quit)
+        self.menu.show_all()
+
+    def _on_popup_menu(self, status, button, time):
+        self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.tray)
+
+    def _on_about_clicked(self, widget):
+        about = gtk.AboutDialog()
+        about.set_name(NAME)
+        about.set_logo(self.icon)
+        about.set_authors(("John Stowers",))
+        about.set_comments("Log to the University of Canterbury Internet")
+        about.run()
+        about.destroy()
+
+    def _on_exit_clicked(self, widget):
+        if self.is_online():
+            self.authenticate("Disable", block=True)
+        gtk.main_quit()
+
+    def _on_authenticated(self, authenticator, ok, choice):
+        if ok:
+            msg = "Internet Access %sd OK" % choice
+            self.online = choice == "Enable"
+        else:
+            msg = "Could not %s Internet Access" % choice
+            self.online = False
+        self.notification.update(NAME,msg,gtk.STOCK_NETWORK)
+        self.notification.show()
+                
+    def authenticate(self, choice, block=False):
+        authenticator = Authenticator(choice)
+        authenticator.connect("completed", self._on_authenticated)
+        authenticator.start()
+        if block:
+            authenticator.join()
 
     def is_online(self):
         return self.nm.online and self.online
