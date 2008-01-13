@@ -18,11 +18,32 @@ import sys
 import getopt
 import getpass
 import os.path
+import ConfigParser
 
-NAME="IEnabler"
-USER="jrs89"
-PASSWORD="rice2498"
-DELAY_MS=500
+class Config(object):
+    def __init__(self):
+        self._file = open(os.path.join(os.environ["HOME"],".ienabler"),'w')
+        self._config = ConfigParser.ConfigParser(defaults = {
+                                            "NAME":"IEnabler",
+                                            "USER":"jrs89",
+                                            "PASSWORD":"rice2498",
+                                            "DELAY_MS":"500"})
+        try:
+            self._config.readfp(self._file)
+        except IOError:
+            #empty file
+            pass
+
+    def get(self, key):
+        return self._config.get('DEFAULT',key)
+
+    def set(self, key, value):
+        self._config.set('DEFAULT',key, value)
+
+    def save(self):
+        self._config.write(self._file)
+        self._file.close()
+CONFIGURATION = Config()
 
 class IEnabler(object):
     def __init__(self,user,password):
@@ -84,7 +105,7 @@ class Authenticator(threading.Thread, gobject.GObject):
         self.choice = choice
 
     def run(self):
-        i = IEnabler(USER,PASSWORD)
+        i = IEnabler(CONFIGURATION.get("USER"),CONFIGURATION.get("PASSWORD"))
         if self.choice == "Enable":
             ok = i.enable()
         else:
@@ -138,14 +159,14 @@ class NetworkListener(gobject.GObject):
 
 class Gui(object):
     def __init__(self):
-        pynotify.init(NAME)
+        pynotify.init(CONFIGURATION.get("NAME"))
         self.online = False
 
         self._create_gui()
         self.nm = NetworkListener()
         self.nm.connect("online", lambda x: self.authenticate("Enable"))
         if self.nm.online:
-            gobject.timeout_add(DELAY_MS,self.authenticate,"Enable")
+            gobject.timeout_add(int(CONFIGURATION.get("DELAY_MS")),self.authenticate,"Enable")
 
     def _create_gui(self):
         #load themed or fallback app icon
@@ -158,12 +179,12 @@ class Gui(object):
         #build tray icon
         self.tray = gtk.StatusIcon()
         self.tray.set_from_pixbuf(self.icon)
-        self.tray.set_tooltip('Ienabler')
+        self.tray.set_tooltip('IEnabler Connecting..')
         self.tray.connect('popup-menu', self._on_popup_menu)
         self.tray.set_visible(True)
 
         #attach the libnotification bubble to the tray
-        self.notification = pynotify.Notification(NAME)
+        self.notification = pynotify.Notification(CONFIGURATION.get("NAME"))
         self.notification.attach_to_status_icon(self.tray)
         self.notification.set_timeout(pynotify.EXPIRES_DEFAULT)
         
@@ -190,7 +211,7 @@ class Gui(object):
 
     def _on_about_clicked(self, widget):
         about = gtk.AboutDialog()
-        about.set_name(NAME)
+        about.set_name(CONFIGURATION.get("NAME"))
         about.set_logo(self.icon)
         about.set_authors(("John Stowers",))
         about.set_comments("Log to the University of Canterbury Internet")
@@ -200,16 +221,18 @@ class Gui(object):
     def _on_exit_clicked(self, widget):
         if self.is_online():
             self.authenticate("Disable", block=True)
+        CONFIGURATION.save()
         gtk.main_quit()
 
     def _on_authenticated(self, authenticator, ok, choice):
         if ok:
             msg = "Internet Access %sd OK" % choice
             self.online = choice == "Enable"
+            self.tray.set_tooltip('Internet %sd' % choice)
         else:
             msg = "Could not %s Internet Access" % choice
             self.online = False
-        self.notification.update(NAME,msg,gtk.STOCK_NETWORK)
+        self.notification.update(CONFIGURATION.get("NAME"),msg,gtk.STOCK_NETWORK)
         self.notification.show()
                 
     def authenticate(self, choice, block=False):
