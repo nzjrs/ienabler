@@ -18,6 +18,7 @@ import sys
 import getopt
 import getpass
 import os.path
+import webbrowser
 import ConfigParser
 
 class Config(object):
@@ -27,7 +28,8 @@ class Config(object):
                                             "NAME":"IEnabler",
                                             "USER":"jrs89",
                                             "PASSWORD":"rice2498",
-                                            "DELAY_MS":"500"})
+                                            "DELAY_MS":"500",
+                                            "ADD_FUNDS_URL":"https://ucstudentweb.canterbury.ac.nz/"})
         try:
             self._config.readfp(self._file)
         except IOError:
@@ -224,14 +226,21 @@ class Gui(object):
         CONFIGURATION.save()
         gtk.main_quit()
 
+    def _on_add_funds(self, n, action):
+        webbrowser.open(CONFIGURATION.get("ADD_FUNDS_URL"))
+        n.close()
+
     def _on_authenticated(self, authenticator, ok, choice):
+        self.notification.clear_actions()
         if ok:
             msg = "Internet Access %sd OK" % choice
-            self.online = choice == "Enable"
             self.tray.set_tooltip('Internet %sd' % choice)
+            self.online = choice == "Enable"
         else:
             msg = "Could not %s Internet Access" % choice
             self.online = False
+            if choice == "Enable":
+                self.notification.add_action("add_funds", "Add Funds", self._on_add_funds)
         self.notification.update(CONFIGURATION.get("NAME"),msg,gtk.STOCK_NETWORK)
         self.notification.show()
                 
