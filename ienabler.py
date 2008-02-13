@@ -234,13 +234,13 @@ class Gui(object):
         self.notification.clear_actions()
         if ok:
             msg = "Internet Access %sd OK" % choice
-            self.tray.set_tooltip('Internet %sd' % choice)
             self.online = choice == "Enable"
         else:
             msg = "Could not %s Internet Access" % choice
             self.online = False
             if choice == "Enable":
                 self.notification.add_action("add_funds", "Add Funds", self._on_add_funds)
+        self.tray.set_tooltip(msg)
         self.notification.update(CONFIGURATION.get("NAME"),msg,gtk.STOCK_NETWORK)
         self.notification.show()
                 
