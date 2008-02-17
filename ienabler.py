@@ -21,15 +21,22 @@ import os.path
 import webbrowser
 import ConfigParser
 
+CONFIGURATION_DEFAULTS = {
+    "name"              :       "IEnabler",
+    "user"              :       "jrs89",
+    "password"          :       "rice2498",
+    "delay_ms"          :       "500", #< 0 disables auto login at start
+    "add_funds_url"     :       "https://ucstudentweb.canterbury.ac.nz/"
+}
+CONFIGURATION_NAMES = (
+    ("user","Username: "),
+    ("password","Password: ")
+)
+
 class Config(object):
     def __init__(self):
         self._file = open(os.path.join(os.environ["HOME"],".ienabler"),'w')
-        self._config = ConfigParser.ConfigParser(defaults = {
-                                            "NAME":"IEnabler",
-                                            "USER":"jrs89",
-                                            "PASSWORD":"rice2498",
-                                            "DELAY_MS":"500",
-                                            "ADD_FUNDS_URL":"https://ucstudentweb.canterbury.ac.nz/"})
+        self._config = ConfigParser.ConfigParser(defaults=CONFIGURATION_DEFAULTS)
         try:
             self._config.readfp(self._file)
         except IOError:
@@ -107,7 +114,7 @@ class Authenticator(threading.Thread, gobject.GObject):
         self.choice = choice
 
     def run(self):
-        i = IEnabler(CONFIGURATION.get("USER"),CONFIGURATION.get("PASSWORD"))
+        i = IEnabler(CONFIGURATION.get("user"),CONFIGURATION.get("password"))
         if self.choice == "Enable":
             ok = i.enable()
         else:
@@ -161,14 +168,16 @@ class NetworkListener(gobject.GObject):
 
 class Gui(object):
     def __init__(self):
-        pynotify.init(CONFIGURATION.get("NAME"))
+        pynotify.init(CONFIGURATION.get("name"))
         self.online = False
 
         self._create_gui()
         self.nm = NetworkListener()
         self.nm.connect("online", lambda x: self.authenticate("Enable"))
         if self.nm.online:
-            gobject.timeout_add(int(CONFIGURATION.get("DELAY_MS")),self.authenticate,"Enable")
+            delay_ms = int(CONFIGURATION.get("delay_ms"))
+            if delay_ms >= 0:
+                gobject.timeout_add(delay_ms,self.authenticate,"Enable")
 
     def _create_gui(self):
         #load themed or fallback app icon
@@ -186,7 +195,7 @@ class Gui(object):
         self.tray.set_visible(True)
 
         #attach the libnotification bubble to the tray
-        self.notification = pynotify.Notification(CONFIGURATION.get("NAME"))
+        self.notification = pynotify.Notification(CONFIGURATION.get("name"))
         self.notification.attach_to_status_icon(self.tray)
         self.notification.set_timeout(pynotify.EXPIRES_DEFAULT)
         
@@ -196,6 +205,8 @@ class Gui(object):
         enable.connect("activate", lambda x: self.authenticate("Enable"))
         disable = gtk.ImageMenuItem(stock_id=gtk.STOCK_NO, accel_group=None)
         disable.connect("activate", lambda x: self.authenticate("Disable"))
+        configure = gtk.ImageMenuItem(stock_id=gtk.STOCK_PREFERENCES, accel_group=None)
+        configure.connect("activate", self._on_configure_clicked)
         about = gtk.ImageMenuItem(stock_id=gtk.STOCK_ABOUT, accel_group=None)
         about.connect("activate", self._on_about_clicked)
         quit = gtk.ImageMenuItem(stock_id=gtk.STOCK_QUIT, accel_group=None)
@@ -204,6 +215,8 @@ class Gui(object):
         self.menu.add(enable)
         self.menu.add(disable)
         self.menu.add(gtk.SeparatorMenuItem())
+        self.menu.add(configure)
+        self.menu.add(gtk.SeparatorMenuItem())
         self.menu.add(about)
         self.menu.add(quit)
         self.menu.show_all()
@@ -211,9 +224,40 @@ class Gui(object):
     def _on_popup_menu(self, status, button, time):
         self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.tray)
 
+    def _on_configure_clicked(self, widget):
+        def pack_pref(pref, display, into):
+            val = CONFIGURATION.get(pref)
+            hb = gtk.HBox()
+            hb.pack_start(gtk.Label(display))
+            w = gtk.Entry()
+            w.set_text(val)
+            hb.pack_start(w)
+            into.pack_start(hb)
+            return w
+
+        #Automatically build a yuck gui for all the config options
+        dlg = gtk.Dialog(
+                        title="Internet Configuration",
+                        buttons=(
+                            gtk.STOCK_CANCEL,gtk.RESPONSE_REJECT,
+                            gtk.STOCK_OK,gtk.RESPONSE_ACCEPT))
+
+        #save widgets so we can get values from them later
+        widgets = {}
+        for pref,display in CONFIGURATION_NAMES:
+            widgets[pref] = pack_pref(pref, display, dlg.vbox)
+
+        dlg.show_all()
+        resp = dlg.run()
+        if resp == gtk.RESPONSE_ACCEPT:
+            for pref,display in CONFIGURATION_NAMES:
+                w = widgets[pref]
+                CONFIGURATION.set(pref, w.get_text())
+        dlg.destroy()
+
     def _on_about_clicked(self, widget):
         about = gtk.AboutDialog()
-        about.set_name(CONFIGURATION.get("NAME"))
+        about.set_name(CONFIGURATION.get("name"))
         about.set_logo(self.icon)
         about.set_authors(("John Stowers",))
         about.set_comments("Log to the University of Canterbury Internet")
@@ -227,7 +271,7 @@ class Gui(object):
         gtk.main_quit()
 
     def _on_add_funds(self, n, action):
-        webbrowser.open(CONFIGURATION.get("ADD_FUNDS_URL"))
+        webbrowser.open(CONFIGURATION.get("add_funds_url"))
         n.close()
 
     def _on_authenticated(self, authenticator, ok, choice):
@@ -241,7 +285,7 @@ class Gui(object):
             if choice == "Enable":
                 self.notification.add_action("add_funds", "Add Funds", self._on_add_funds)
         self.tray.set_tooltip(msg)
-        self.notification.update(CONFIGURATION.get("NAME"),msg,gtk.STOCK_NETWORK)
+        self.notification.update(CONFIGURATION.get("name"),msg,gtk.STOCK_NETWORK)
         self.notification.show()
                 
     def authenticate(self, choice, block=False):
