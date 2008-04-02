@@ -28,13 +28,9 @@ CONFIGURATION_NAMES = (
 
 class Config:
     def __init__(self):
-        self._file = open(os.path.join(os.environ["HOME"],".ienabler"),'w')
+        self._filePath = os.path.join(os.environ["HOME"],".ienabler")
         self._config = ConfigParser.ConfigParser(defaults=CONFIGURATION_DEFAULTS)
-        try:
-            self._config.readfp(self._file)
-        except IOError:
-            #empty file
-            pass
+        self._config.read(self._filePath)
 
     def get(self, key):
         return self._config.get('DEFAULT',key)
@@ -43,8 +39,9 @@ class Config:
         self._config.set('DEFAULT',key, value)
 
     def save(self):
-        self._config.write(self._file)
-        self._file.close()
+        fp = open(self._filePath, 'w')
+        self._config.write(fp)
+        fp.close()
 CONFIGURATION = Config()
 
 class Authenticator(threading.Thread, gobject.GObject):
