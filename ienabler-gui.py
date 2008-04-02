@@ -26,7 +26,7 @@ CONFIGURATION_NAMES = (
     ("password","Password: ")
 )
 
-class Config(object):
+class Config:
     def __init__(self):
         self._file = open(os.path.join(os.environ["HOME"],".ienabler"),'w')
         self._config = ConfigParser.ConfigParser(defaults=CONFIGURATION_DEFAULTS)
@@ -110,7 +110,7 @@ class NetworkListener(gobject.GObject):
         self.emit("offline")
 
 
-class Gui(object):
+class Gui:
     def __init__(self):
         pynotify.init(CONFIGURATION.get("name"))
         self.online = False
@@ -169,14 +169,21 @@ class Gui(object):
         self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.tray)
 
     def _on_configure_clicked(self, widget):
-        def pack_pref(pref, display, into):
-            val = CONFIGURATION.get(pref)
-            hb = gtk.HBox()
-            hb.pack_start(gtk.Label(display))
+        def make_label_and_entry(defaultValue, displayName, packInto, sizegroup):
+            #makes a gtk.HBox with a label and a gtk.Entry. packs the
+            #hbox into the container, Returns the entry
+            lbl = gtk.Label(displayName)
+            lbl.set_alignment(0, 0.5)
+            sizegroup.add_widget(lbl)
+
             w = gtk.Entry()
-            w.set_text(val)
+            w.set_text(defaultValue)
+
+            hb = gtk.HBox()
+            hb.pack_start(lbl)
             hb.pack_start(w)
-            into.pack_start(hb)
+
+            packInto.pack_start(hb)
             return w
 
         #Automatically build a yuck gui for all the config options
@@ -185,11 +192,20 @@ class Gui(object):
                         buttons=(
                             gtk.STOCK_CANCEL,gtk.RESPONSE_REJECT,
                             gtk.STOCK_OK,gtk.RESPONSE_ACCEPT))
+        #make all text entries the same size
+        labelSizeGroup = gtk.SizeGroup(gtk.SIZE_GROUP_HORIZONTAL)
 
         #save widgets so we can get values from them later
         widgets = {}
         for pref,display in CONFIGURATION_NAMES:
-            widgets[pref] = pack_pref(pref, display, dlg.vbox)
+            widgets[pref] = make_label_and_entry(
+                                defaultValue=CONFIGURATION.get(pref),
+                                displayName=display,
+                                packInto=dlg.vbox,
+                                sizegroup=labelSizeGroup)
+
+        #hide password text
+        widgets["password"].set_visibility(False)
 
         dlg.show_all()
         resp = dlg.run()
