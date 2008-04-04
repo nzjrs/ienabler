@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=IEnabler
+Comment=Access University of Canterbury Internet
+Icon=uclogo
+Exec=ienabler-gui.py
+Categories=GNOME;GTK;Network;
+

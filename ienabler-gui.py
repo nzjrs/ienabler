@@ -124,7 +124,12 @@ class Gui:
         #load themed or fallback app icon
         try:
             icon = os.path.join(os.path.dirname(__file__),'uclogo.svg')
-            self.icon = gtk.gdk.pixbuf_new_from_file(icon)
+            if os.path.exists(icon):
+                #not installed
+                self.icon = gtk.gdk.pixbuf_new_from_file(icon)
+            else:
+                #installed
+                self.icon = gtk.icon_theme_get_default().load_icon("uclogo", 24, gtk.ICON_LOOKUP_FORCE_SVG)
         except gobject.GError:
             self.icon = gtk.icon_theme_get_default().load_icon(gtk.STOCK_NETWORK, 24, gtk.ICON_LOOKUP_FORCE_SVG)
 
