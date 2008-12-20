@@ -10,10 +10,14 @@ class IEnabler(object):
     def __init__(self,user,password):
         self.user = user
         self.password = password
-        self.tn = telnetlib.Telnet(
-                        "ienabler.canterbury.ac.nz",
-                        259
-                        )
+        try:
+            self.tn = telnetlib.Telnet(
+                            "ienabler.canterbury.ac.nz",
+                            259
+                            )
+        except Exception, e:
+            self.tn = None
+            print "ERROR: %s" % e
 
     def _read_string(self, string):
         result = self.tn.read_until(string, 5)
@@ -46,13 +50,19 @@ class IEnabler(object):
             return False
 
     def enable(self):
-        ok = self._choice(1)
-        self.tn.close()
+        if self.tn:
+            ok = self._choice(1)
+            self.tn.close()
+        else:
+            ok = False
         return ok
 
     def disable(self):
-        ok = self._choice(2)
-        self.tn.close()
+        if self.tn:
+            ok = self._choice(2)
+            self.tn.close()
+        else:
+            ok = False
         return ok
 
 
