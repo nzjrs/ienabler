@@ -52,25 +52,31 @@
       Internet Enabler Clone for University of Canterbury
     </div>
 
-    <p>This is a Linux re-implementation of the University of Canterbury IEnabler client necessary for accessing the Internet from within the UoC network. 
+    <p>This is a Linux re-implementation of the University of Canterbury <a href="http://www.it.canterbury.ac.nz/web/internet/ieenabler.shtml">IEnabler client</a> necessary for accessing the Internet from within the UoC network.</p>
+    <p>The package contains two tools, ienabler-gui.py which is a graphical client using Gtk, and ienabler-cmd.py, which is a simple wrapper around the existing university telnet interface.</p>
+    <p><img src="screenshot.png"/>
 
-The package contains two tools, ienabler-gui.py which is a graphical client using Gtk, and ienabler-cmd.py, which is a simple wrapper around the existing university telnet interface.</p><h2>Dependencies</h2>
-<p>Python
-pygtk (optional, for graphical version only)
-NetworkManager (optional, for graphical version only)</p>
-<h2>Install</h2>
-<p>You may install using python-setuptools
- * python setup.py install
+    <h2>Dependencies</h2>
+    <p><ul>
+        <li>Python</li>
+        <li>pygtk (optional, for graphical version only)</li>
+        <li>NetworkManager (optional, for graphical version only)</li>
+    </ul></p>
 
-Or you may create a deb package and install that
- * python setup.py bdist_debian
- * dpkg -i ienabler*.deb</p>
-<h2>Authors</h2>
-<p>John Stowers (john.stowers@gmail.com)<br/><br/>      </p>
-<h2>Contact</h2>
-<p>John Stowers (john.stowers@gmail.com)<br/>      </p>
+    <h2>Install</h2>
+    <p>You may install using python-setuptools
+    <ul><li>python setup.py install</li></ul>
+    Or you may create a deb package and install that
+    <ul>
+        <li>python setup.py bdist_debian</li>
+        <li>dpkg -i ienabler*.deb</li>
+    </ul></p>
 
+    <h2>Authors</h2>
+    <p>John Stowers (john.stowers@gmail.com)
 
+    <h2>Contact</h2>
+    <p>John Stowers (john.stowers@gmail.com)
     <h2>Download</h2>
     <p>
       You can download this project in either
