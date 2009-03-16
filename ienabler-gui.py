@@ -102,6 +102,7 @@ class NetworkListener(gobject.GObject):
                 nm_interface.connect_to_signal('DeviceNoLongerActive', self.inactive_cb)
         except dbus.DBusException, de:
                 print "Error while connecting to NetworkManager: %s" % str(de)
+                self.online = True
 
     def active_cb(self, path):
         self.online = True
