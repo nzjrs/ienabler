@@ -13,9 +13,11 @@ if __name__ == "__main__":
     #FILL IN DEFAULTS IF YOU WANT
     USER = ""
     PASSWORD = ""
+    HOST = "ienabler.canterbury.ac.nz"
+    PORT = "259"
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "du:p:", ["disable", "user", "password"])
+        opts, args = getopt.getopt(sys.argv[1:], "du:p:h:P:", ["disable", "user", "password", "host", "port"])
     except getopt.GetoptError:
         print   "Ienabler: Enables and Disables UOC Internet Access.\n" + \
                 "Usage:\n" + \
@@ -24,6 +26,8 @@ if __name__ == "__main__":
                 " -d,--disable   Logs you out of the internet\n" + \
                 " -u,--user      Username\n" + \
                 " -p,--pasword   Password\n"
+                " -h,--host      ienabler host\n" + \
+                " -P,--port      ienabler port\n"
         sys.exit(1)
 
     choice = "Enable"
@@ -34,13 +38,18 @@ if __name__ == "__main__":
             USER = a
         if o in ("-p", "--password"):
             PASSWORD = a
+        if o in ("-h", "--host"):
+            HOST = a
+        if o in ("-P", "--port"):
+            PORT = a
+
 
     if USER == "":
         USER = raw_input("Username:")
     if PASSWORD == "":
         PASSWORD = getpass.getpass("Password:")
 
-    i = IEnabler(USER,PASSWORD)
+    i = IEnabler(USER,PASSWORD,HOST,PORT)
     if choice == "Enable":
         ok = i.enable()
     else:

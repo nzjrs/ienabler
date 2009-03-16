@@ -7,13 +7,13 @@
 import telnetlib
 
 class IEnabler(object):
-    def __init__(self,user,password):
+    def __init__(self,user,password, host="ienabler.canterbury.ac.nz", port=259):
         self.user = user
         self.password = password
         try:
             self.tn = telnetlib.Telnet(
-                            "ienabler.canterbury.ac.nz",
-                            259
+                            host,
+                            port
                             )
         except Exception, e:
             self.tn = None

@@ -19,7 +19,9 @@ CONFIGURATION_DEFAULTS = {
     "user"              :       "jrs89",
     "password"          :       "rice2498",
     "delay_ms"          :       "500", #< 0 disables auto login at start
-    "add_funds_url"     :       "https://ucstudentweb.canterbury.ac.nz/"
+    "add_funds_url"     :       "https://ucstudentweb.canterbury.ac.nz/",
+    "ienabler_host"     :       "ienabler.canterbury.ac.nz", #123.255.13.254
+    "ienabler_port"     :       "259",
 }
 CONFIGURATION_NAMES = (
     ("user","Username: "),
@@ -55,7 +57,12 @@ class Authenticator(threading.Thread, gobject.GObject):
         self.choice = choice
 
     def run(self):
-        i = IEnabler(CONFIGURATION.get("user"),CONFIGURATION.get("password"))
+        i = IEnabler(
+                user=CONFIGURATION.get("user"),
+                password=CONFIGURATION.get("password"),
+                host=CONFIGURATION.get("ienabler_host"),
+                port=CONFIGURATION.get("ienabler_port")
+                )
         if self.choice == "Enable":
             ok = i.enable()
         else:
