@@ -16,8 +16,8 @@ from ienabler import IEnabler
 
 CONFIGURATION_DEFAULTS = {
     "name"              :       "IEnabler",
-    "user"              :       "jrs89",
-    "password"          :       "rice2498",
+    "user"              :       "",
+    "password"          :       "",
     "delay_ms"          :       "500", #< 0 disables auto login at start
     "add_funds_url"     :       "https://ucstudentweb.canterbury.ac.nz/",
     "ienabler_host"     :       "ienabler.canterbury.ac.nz", #123.255.13.254
