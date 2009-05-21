@@ -118,6 +118,7 @@ class NetworkListener(gobject.GObject):
 class Gui:
     def __init__(self):
         pynotify.init(CONFIGURATION.get("name"))
+        self.notifications_show_actions = 'actions' in pynotify.get_server_caps()
         self.online = False
 
         self._create_gui()
@@ -252,7 +253,7 @@ class Gui:
         else:
             msg = "Could not %s Internet Access" % choice
             self.online = False
-            if choice == "Enable":
+            if choice == "Enable" and self.notifications_show_actions:
                 self.notification.add_action("add_funds", "Add Funds", self._on_add_funds)
         self.tray.set_tooltip(msg)
         self.notification.update(CONFIGURATION.get("name"),msg,gtk.STOCK_NETWORK)
