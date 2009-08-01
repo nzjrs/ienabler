@@ -1,0 +1,13 @@
+Source: ienabler
+Section: net
+Priority: extra
+Maintainer: John Stowers <john.stowers@gmail.com>
+Build-Depends: cdbs, debhelper (>= 7)
+Standards-Version: 3.8.0
+Homepage: http://nzjrs.github.com/ienabler 
+
+Package: ienabler
+Architecture: all
+XS-Python-Version: ${python:Versions}
+Depends: python-gobject, python-gtk2, ${python:Depends}, ${misc:Depends}
+Description: IEnabler Client for University of Canterbury
