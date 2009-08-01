@@ -7,3 +7,6 @@ install-local:
 uninstall-local:
 	@echo "Removing .desktop file from "$(HOME)"/.local/share/applications/ienabler.desktop"
 	@rm -f $(HOME)/.local/share/applications/ienabler.desktop
+
+clean:
+	@rm -f *.pyc
