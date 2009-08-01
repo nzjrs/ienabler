@@ -93,11 +93,11 @@ class NetworkListener(gobject.GObject):
                 systemBus = dbus.SystemBus()
                 proxy_obj = systemBus.get_object(NetworkListener.SERVICE_NAME,
                                                  NetworkListener.SERVICE_PATH)
+                nm_interface = dbus.Interface(proxy_obj, NetworkListener.SERVICE_NAME)
 
                 #magic number: aparently 3 == online
-                self.online = int(proxy_obj.state()) == 3
-
-                nm_interface = dbus.Interface(proxy_obj, NetworkListener.SERVICE_NAME)
+                self.online = int(nm_interface.state()) == 3
+                
                 nm_interface.connect_to_signal('DeviceNowActive', self.active_cb)
                 nm_interface.connect_to_signal('DeviceNoLongerActive', self.inactive_cb)
         except dbus.DBusException, de:
