@@ -3,18 +3,15 @@
 from distutils.core import setup
 
 setup(
-    name='ienabler',
-    scripts=['ienabler-cmd.py', 'ienabler-gui.py'],
-    py_modules=['ienabler'],
-    version='1.0',
-    maintainer='John Stowers',
-    maintainer_email='john.stowers@gmail.com',
-    depends='python2.5',
-    license="BSD",
-    section="user/other",
-    architecture="all",
-    essential="no",
+    name="ienabler",
+    version="1.0",
     description="Univeristy of Canterbury IEnabler",
+    author="John Stowers",
+    author_email="john.stowers@gmail.com",
+    url="http://nzjrs.github.com/ienabler ",
+    license="GPL v2",
+    scripts=["ienabler-cmd.py", "ienabler-gui.py"],
+    py_modules=["ienabler"],
     data_files=[
         ('share/applications', ['ienabler.desktop']),
         ('share/pixmaps', ['uclogo.svg'])],
