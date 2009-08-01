@@ -1,4 +1,16 @@
-ienabler (1.0-1) unstable; urgency=low
+ienabler (1.0-1ubuntu2) jaunty; urgency=low
+
+  * Rebuild
+
+ -- John Stowers <john.stowers@gmail.com>  Sat, 01 Aug 2009 19:58:10 +1200
+
+ienabler (1.0-1ubuntu1) jaunty; urgency=low
+
+  * Rebuild
+
+ -- John Stowers <john.stowers@gmail.com>  Sat, 01 Aug 2009 19:03:53 +1200
+
+ienabler (1.0-1) jaunty; urgency=low
 
   * Initial release
 

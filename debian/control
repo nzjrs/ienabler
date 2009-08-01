@@ -1,13 +1,15 @@
 Source: ienabler
 Section: net
-Priority: extra
+XS-Python-Version: all
+Priority: optional
 Maintainer: John Stowers <john.stowers@gmail.com>
-Build-Depends: cdbs, debhelper (>= 7)
+Build-Depends: debhelper, python, cdbs
+Build-Depends-Indep: python-central
 Standards-Version: 3.8.0
 Homepage: http://nzjrs.github.com/ienabler 
 
 Package: ienabler
 Architecture: all
-XS-Python-Version: ${python:Versions}
-Depends: python-gobject, python-gtk2, ${python:Depends}, ${misc:Depends}
+Depends: ${python:Depends}, ${misc:Depends}, python-gobject, python-gtk2, python-notify, python-dbus
+XB-Python-Version: ${python:Versions}
 Description: IEnabler Client for University of Canterbury
