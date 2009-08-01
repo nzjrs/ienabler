@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import bdist_debian
 from distutils.core import setup
 
 setup(
@@ -19,8 +18,6 @@ setup(
     data_files=[
         ('share/applications', ['ienabler.desktop']),
         ('share/pixmaps', ['uclogo.svg'])],
-    cmdclass={
-        'bdist_debian': bdist_debian.bdist_debian}
 )
 
 
