@@ -25,7 +25,7 @@ if __name__ == "__main__":
                 "Options:\n" + \
                 " -d,--disable   Logs you out of the internet\n" + \
                 " -u,--user      Username\n" + \
-                " -p,--pasword   Password\n"
+                " -p,--pasword   Password\n" + \
                 " -h,--host      ienabler host\n" + \
                 " -P,--port      ienabler port\n"
         sys.exit(1)
