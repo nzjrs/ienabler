@@ -157,9 +157,14 @@ class Gui:
         #create popup menu
         self.menu = gtk.Menu()
         enable = gtk.ImageMenuItem(stock_id=gtk.STOCK_YES, accel_group=None)
+        enable.get_children()[0].set_text("Enable Internet")
         enable.connect("activate", lambda x: self.authenticate("Enable"))
         disable = gtk.ImageMenuItem(stock_id=gtk.STOCK_NO, accel_group=None)
+        disable.get_children()[0].set_text("Disable Internet")
         disable.connect("activate", lambda x: self.authenticate("Disable"))
+        topup = gtk.ImageMenuItem(stock_id=gtk.STOCK_HOME, accel_group=None)
+        topup.get_children()[0].set_text("Add Funds")
+        topup.connect("activate", lambda x: webbrowser.open(CONFIGURATION.get("add_funds_url")))
         configure = gtk.ImageMenuItem(stock_id=gtk.STOCK_PREFERENCES, accel_group=None)
         configure.connect("activate", self._on_configure_clicked)
         about = gtk.ImageMenuItem(stock_id=gtk.STOCK_ABOUT, accel_group=None)
@@ -169,6 +174,7 @@ class Gui:
         
         self.menu.add(enable)
         self.menu.add(disable)
+        self.menu.add(topup)
         self.menu.add(gtk.SeparatorMenuItem())
         self.menu.add(configure)
         self.menu.add(gtk.SeparatorMenuItem())
