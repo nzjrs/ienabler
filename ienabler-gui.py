@@ -117,6 +117,9 @@ class NetworkListener(gobject.GObject):
 
 class Gui:
     def __init__(self):
+        gobject.set_prgname(CONFIGURATION.get("name"))
+        gobject.set_application_name("Internet Enabler")
+
         pynotify.init(CONFIGURATION.get("name"))
         self.notifications_show_actions = 'actions' in pynotify.get_server_caps()
         self.online = False
