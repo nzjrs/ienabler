@@ -48,7 +48,7 @@ CONFIGURATION = Config()
 
 class Authenticator(threading.Thread, gobject.GObject):
     __gsignals__ =  { 
-                    "completed": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, [gobject.TYPE_BOOLEAN,gobject.TYPE_STRING])
+                    "completed": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, [bool,str,str])
                     }
 
     def __init__(self, choice):
@@ -57,17 +57,25 @@ class Authenticator(threading.Thread, gobject.GObject):
         self.choice = choice
 
     def run(self):
-        i = IEnabler(
-                user=CONFIGURATION.get("user"),
-                password=CONFIGURATION.get("password"),
-                host=CONFIGURATION.get("ienabler_host"),
-                port=CONFIGURATION.get("ienabler_port")
-                )
-        if self.choice == "Enable":
-            ok = i.enable()
+        #check the user has specified a password
+        user=CONFIGURATION.get("user")
+        password=CONFIGURATION.get("password")
+        if user and password:
+            extra_reason = ""
+            i = IEnabler(
+                    user=user,
+                    password=password,
+                    host=CONFIGURATION.get("ienabler_host"),
+                    port=CONFIGURATION.get("ienabler_port")
+                    )
+            if self.choice == "Enable":
+                ok = i.enable()
+            else:
+                ok = i.disable()
         else:
-            ok = i.disable()
-        self.emit("completed", ok, self.choice)
+            ok = False
+            extra_reason = "Please Enter Password"    
+        self.emit("completed", ok, self.choice, extra_reason)
 
     def emit(self, *args):
         """
@@ -154,7 +162,9 @@ class Gui:
 
         #attach the libnotification bubble to the tray
         self.notification = pynotify.Notification(CONFIGURATION.get("name"))
-        self.notification.attach_to_status_icon(self.tray)
+        try:
+            self.notification.attach_to_status_icon(self.tray)
+        except: pass
         self.notification.set_timeout(pynotify.EXPIRES_DEFAULT)
         
         #create popup menu
@@ -254,7 +264,7 @@ class Gui:
         webbrowser.open(CONFIGURATION.get("add_funds_url"))
         n.close()
 
-    def _on_authenticated(self, authenticator, ok, choice):
+    def _on_authenticated(self, authenticator, ok, choice, extra_reason):
         self.notification.clear_actions()
         if ok:
             msg = "Internet Access %sd OK" % choice
@@ -264,6 +274,8 @@ class Gui:
             self.online = False
             if choice == "Enable" and self.notifications_show_actions:
                 self.notification.add_action("add_funds", "Add Funds", self._on_add_funds)
+        if extra_reason:
+            msg = msg + "\n%s" % extra_reason 
         self.tray.set_tooltip(msg)
         self.notification.update(CONFIGURATION.get("name"),msg,gtk.STOCK_NETWORK)
         self.notification.show()
